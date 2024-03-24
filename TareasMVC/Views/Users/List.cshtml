@@ -1,0 +1,47 @@
+﻿@model TareasMVC.ViewModel.UserList
+
+@{
+    ViewData["Title"] = "Listado de usuarios";
+    Layout = "../shared/_layout";
+}
+
+<h1>Listado de Usuarios</h1>
+
+@if(Model.Msj != null)
+{
+    <div class="alert alert-success" role="alert">
+        @Model.Msj
+    </div>
+}
+
+@if(Model.Users != null) 
+{
+
+    <form method="post">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>Accion</td>
+                    <td>Email</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>
+                            <button class="btn btn-primary me-2" asp-action="MakeAdmin" asp-route-email="@user.Email">Hacer Admin</button>
+                            <button class="btn btn-secondary me-2" asp-action="RemoveAdmin" asp-route-email="@user.Email">Remover Admin</button>
+                        </td>
+                        <td>
+                            @user.Email
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+
+} else {
+    <p>No hay usuarios para mostrar</p>
+}

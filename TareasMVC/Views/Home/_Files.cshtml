@@ -1,0 +1,17 @@
+﻿<label><i class="bi bi-paperclip"></i>Archivos adjuntos</label>
+<button class="btn btn-secondary btn-sm" onclick="addFileAttachmentHandle()">+</button>
+<input type="file" onchange="taskFileSelectionHandle(event)" id="taskFile" multiple style="display: none" />
+
+<div id="reorder-files" data-bind="foreach: fileAttachments">
+    <div>
+        <div style="cursor: pointer" class="fw-bold" data-bind="text: title, hidden: editionMode, click: fileTitleHandle"></div>
+        <div data-bind="visible: editionMode, event: {focusout: focusoutFileTitleHandle}">
+            <input name="txtTitleFile" type="text" class="form-control" data-bind="value: title, attr:{'data-id': id}" />
+        </div>
+        <div>
+            Agregado <span data-bind="text: published"></span> -
+            <span class="fw-bold" style="cursor: pointer" data-bind="click:fileDeleteHandle">Borrar</span> -
+            <span class="fw-bold" style="cursor: pointer" data-bind="click:fileDownloadHandle" >Descargar</span>
+        </div>
+    </div>
+</div>

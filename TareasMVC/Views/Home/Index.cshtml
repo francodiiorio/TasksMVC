@@ -1,0 +1,126 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer localizer
+
+
+@{
+    ViewData["Title"] = "Listado tareas";
+}
+
+<div class="text-center">
+    <h1 class="display-4">@localizer["Mis tareas"]</h1>
+    <button class="btn btn-primary mb-3" type="button" onclick="addTask()">@localizer["Agregar nueva tarea"]</button>
+</div>
+
+<div id="container-task-list" class="text-center">
+    <div id="reordenable" class="text-start" data-bind="foreach: tasks">
+        <div name="task" class="border mb-2 p-2" style="cursor: pointer" data-bind="click: clickTaskHandle">
+            <div data-bind="text: title, hidden: isNew" class="fw-bold">           
+            </div>
+
+            <div name="steps-summary" data-bind="visible: totalSteps() > 0">
+                <span data-bind="text: completeSteps"></span> /
+                <span data-bind="text: totalSteps"></span>
+                <span data-bind="text: percentComplete"></span>
+            </div>
+
+            <input type="text" name="title-task" autocomplete="off" data-bind="value: title, visible: isNew, attr: {'data-id': id}, event: {focusout: taskTitleHandle}" />
+
+        </div>
+    </div>
+
+    <div data-bind="visible: charging" class="spinner-border">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+
+    <div data-bind="visible: noTasks">
+        No hay tareas para mostrar
+    </div>
+</div>
+
+<partial name="_ModalTaskEdit" />
+
+@section Scripts{
+
+    <script src="~/js/Utilities.js" asp-append-version="true"></Script>
+    <script src="~/js/tasks.js" asp-append-version="true"></Script>
+    <script src="~/js/steps.js" asp-append-version="true"></Script>
+    <script src="~/js/files.js" asp-append-version="true"></Script>
+
+    <script>
+
+        const tasksUrl = "/api/tasks";
+        const stepsUrl = "api/steps";
+        const filesUrl = "/api/files";
+
+        const modalTaskEdit = document.getElementById('modal-task-edit');
+        const modalTaskEditBootstrap = new bootstrap.Modal(modalTaskEdit);
+
+        function tareaListadoFN() {
+            var self = this;
+            self.tasks = ko.observableArray([]);
+            self.charging = ko.observable(true);
+
+            self.noTasks = ko.pureComputed(function(){
+                if (self.charging()){
+                    return false;
+                }
+
+                return self.tasks().length === 0;
+            })
+        }
+
+        function elementTask({id, title, totalSteps, completeSteps}){
+            var self = this;
+            self.id = ko.observable(id);
+            self.title = ko.observable(title);
+            self.totalSteps = ko.observable(totalSteps);
+            self.completeSteps = ko.observable(completeSteps);
+            self.isNew = ko.pureComputed(function(){
+                return self.id() == 0;
+            })
+            self.percentComplete = ko.pureComputed(function(){
+                const calc = Math.round(self.completeSteps() * 1.0 / self.totalSteps() * 100);
+                return `(${calc}%)`;
+            })
+        }
+
+        const taskEditVM = {
+            id: 0,
+            title: ko.observable(''),
+            description: ko.observable(''),
+            steps: ko.observableArray([]),
+            fileAttachments: ko.observableArray([])
+        }
+
+        const tareaListado = new tareaListadoFN();
+
+        function stepVM({id, description, complete, editionMode}){
+            var self = this;
+            self.id = ko.observable(id || 0);
+            self.description = ko.observable(description || '');
+            self.aboveDescription = '';
+            self.complete = ko.observable(complete);
+            self.editionMode = ko.observable(editionMode);
+
+            self.isNew = ko.pureComputed(function (){
+                return self.id() == 0;
+            })
+        }
+
+        function fileAttachmentVM({id, title, published, editionMode, order, url}) {
+            var self = this;
+            self.id = id;
+            self.title = ko.observable(title || '');
+            self.published = published;
+            self.editionMode = ko.observable(editionMode);
+            self.order = order;
+            self.url = url;
+
+        }
+
+        getTasks();
+
+        ko.applyBindings(tareaListado, document.getElementById('container-task-list'));
+        ko.applyBindings(taskEditVM, document.getElementById('modal-task-edit'));
+    </script>
+}
